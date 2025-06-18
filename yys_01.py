@@ -22,14 +22,15 @@ flag_lock = threading.Lock()
 # 图像匹配相似度阈值
 threshold = 0.8
 
+#参数
 x_overall = {}
 y_overall = {}
 total = {}
-size = 200 # 局数
-time_per_game = 10 #单位s
+size = 200 # 局数q
+time_per_game = 8 #单位sq
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12-1"]
+window_titles = ["MuMu模拟器12","MuMu模拟器12-1"]
 # === 日志输出统一函数 ===
 def log(msg):
     now = datetime.datetime.now().strftime("%H:%M:%S")
@@ -100,22 +101,23 @@ def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
                 match_x, match_y = max_loc
                 offset_x = left + match_x + template.shape[1] // 2 + x
                 offset_y = top + match_y + template.shape[0]  // 2 + y
+
+            win.activate()  # 激活窗口，使其显示在最前面
             pyautogui.moveTo(offset_x, offset_y, duration=0.1)
-            safe_activate(win.title)
             pyautogui.click()
             print(f"🎯 已点击 {win.title} 坐标: ({offset_x}, {offset_y})")
             # 判断是否跳转成功未成功在点击一次
             screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
             max_val, max_loc = get_max_val(screenshot, template)
             if max_val >= threshold:
-                safe_activate(win.title)
+                win.activate()
                 pyautogui.click()
             if img_path == "dist/huodong/tiaozhaun.png":
                 if total.get(win.title) is None:
                     total[win.title] = 0
                 total[win.title]  += 1
-                time.sleep(8)
-                print(f'已经打了{total}')
+                time.sleep(time_per_game)
+                print(f'{win.title}已经打了{total[win.title]}')
             break
         else:
             print(f"{img_path}图像未匹配 {win.title}")
