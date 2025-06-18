@@ -1,0 +1,209 @@
+import random
+
+import numpy as np
+import pygetwindow as gw
+import pyautogui
+import cv2
+from PIL import ImageGrab
+import time
+import threading
+import keyboard
+from pathlib import Path
+import json
+import datetime
+from pywinauto.application import Application
+
+
+# 全局退出标志
+stop_flag = False
+pause_flag = False
+flag_lock = threading.Lock()
+
+# 图像匹配相似度阈值
+threshold = 0.8
+
+x_overall = {}
+y_overall = {}
+total = {}
+size = 200 # 局数
+time_per_game = 10 #单位s
+
+# 目标窗口标题列表 + 目标图片路径
+window_titles = ["MuMu模拟器12-1"]
+# === 日志输出统一函数 ===
+def log(msg):
+    now = datetime.datetime.now().strftime("%H:%M:%S")
+    thread_name = threading.current_thread().name
+    print(f"[{now}][{thread_name}] {msg}")
+
+
+# === 键盘监听线程 ===
+def keyboard_listener():
+    global stop_flag, pause_flag,x_overall, y_overall, total
+    print("⌨️ 键盘监听已启动：按下 q 键可终止脚本")
+    while True:
+        if keyboard.is_pressed('q'):
+            with flag_lock:
+                stop_flag = True
+            log("🚨 按下 q：停止所有线程")
+            break
+        elif keyboard.is_pressed('p'):
+            with flag_lock:
+                pause_flag = True
+            log("⏸️ 按下 p：已暂停")
+            time.sleep(0.5)
+        elif keyboard.is_pressed('r'):
+            with flag_lock:
+                pause_flag = False
+            log("▶️ 按下 r：恢复运行")
+            time.sleep(0.5)
+        time.sleep(0.1)
+
+def get_max_val(screenshot,template):
+    screenshot_cv = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2GRAY)
+    result = cv2.matchTemplate(screenshot_cv, template, cv2.TM_CCOEFF_NORMED)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+    return max_val,max_loc
+
+
+def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
+    global x_overall, y_overall, total
+    while True:
+        with flag_lock:
+            if stop_flag:
+                log(f"grab() 检测到停止标志，退出")
+                return
+            while pause_flag:
+                log("grab() 暂停中...")
+                time.sleep(0.5)
+        # 4. 截图窗口区域
+        screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
+        # screenshot.save("dist/1.png")
+        width, height = screenshot.size  # 返回 (宽, 高)
+        print(f"{img_path}截图大小: 宽={width}, 高={height}")
+        template = cv2.imread(img_path, 0)  # 目标图像（按钮、图标等）
+        height, width = template.shape  # 高度, 宽度
+        print(f"{img_path}模板尺寸: 宽={width}, 高={height}")
+        # 5. 匹配图像特征点
+        max_val,max_loc = get_max_val(screenshot,template)
+        if max_val >= threshold:
+            print(f"{img_path}{win.title}图像匹配成功")
+            if img_path == "dist/huodong/tiaozhaun.png" and x_overall.get(win.title) is None and y_overall.get(win.title)is None  :
+                match_x, match_y = max_loc
+                x_overall[win.title] = left + match_x + template.shape[1] // 2
+                y_overall[win.title] = top + match_y + template.shape[0] // 2
+            print("图像匹配成功")
+            if x_overall.get(win.title) is not None and y_overall.get(win.title)is not None  :
+                offset_x = x_overall[win.title] + x
+                offset_y = y_overall[win.title] + y
+            else:
+                match_x, match_y = max_loc
+                offset_x = left + match_x + template.shape[1] // 2 + x
+                offset_y = top + match_y + template.shape[0]  // 2 + y
+            pyautogui.moveTo(offset_x, offset_y, duration=0.1)
+            safe_activate(win.title)
+            pyautogui.click()
+            print(f"🎯 已点击 {win.title} 坐标: ({offset_x}, {offset_y})")
+            # 判断是否跳转成功未成功在点击一次
+            screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
+            max_val, max_loc = get_max_val(screenshot, template)
+            if max_val >= threshold:
+                safe_activate(win.title)
+                pyautogui.click()
+            if img_path == "dist/huodong/tiaozhaun.png":
+                if total.get(win.title) is None:
+                    total[win.title] = 0
+                total[win.title]  += 1
+                time.sleep(8)
+                print(f'已经打了{total}')
+            break
+        else:
+            print(f"{img_path}图像未匹配 {win.title}")
+            break
+
+def get_coordinate(file_path):
+    with open(f"{file_path}/img.json", "r", encoding="utf-8") as file:
+        data = json.load(file)
+        return data
+
+def safe_activate(title):
+    try:
+        app = Application().connect(title=title)
+        window = app.window(title=title)
+        window.set_focus()
+        win.resizeTo(1280, 720)
+        log(f"✅ 激活窗口成功: {win.title}")
+    except Exception as e:
+        log(f"❌ 激活窗口失败: {win.title}，错误：{e}")
+
+def process_window(win):
+    hwnd = win._hWnd
+    safe_activate(win.title)
+    print(f"激活窗口 {win.title}")
+    time.sleep(1)
+    left, top = win.left, win.top
+    right = left + win.width
+    bottom = top + win.height
+    file_path = "dist/huodong/"
+
+    folder = Path(file_path)  # 这是一个 WindowsPath 对象
+
+    while True:
+        if total.get(win.title) is not None and total[win.title] >= size:
+            break
+        files = folder.iterdir()
+        # 获取特点偏移量  为配置默认80
+        datas = get_coordinate(file_path)
+        # 循环匹配图片
+        for f in files:
+            with flag_lock:
+                if stop_flag:
+                    log(f"grab() 检测到停止标志，退出")
+                    return
+                while pause_flag:
+                    log("grab() 暂停中...")
+                    time.sleep(0.5)
+
+            if f.name.endswith(".png"):
+                time.sleep(0.3)
+                for data in datas:
+                    temp = False
+                    if data["name"] == f.name.replace(".png","") :
+                        left_coor, right_coor, top_coor,bottom_coor = map(int,data["coordinate"].split(","))
+                        grab(left, top, right, bottom, f"{file_path}{f.name}", random.randint(left_coor, right_coor),
+                             random.randint(top_coor, bottom_coor), hwnd, win)
+                        temp = True
+                        break
+                    if not temp:
+                        grab(left, top, right, bottom, f"{file_path}{f.name}",
+                             random.randint(-40, 40), random.randint(-40, 40),hwnd,win)
+
+if __name__ == '__main__':
+
+    # 查找窗口句柄
+    windows = []
+    for title in window_titles:
+        found = gw.getWindowsWithTitle(title)
+        if found:
+            windows.append(found[0])
+            print(f"❌ 找到窗口: {title}")
+
+        else:
+            print(f"❌ 找不到窗口: {title}")
+    # 启动键盘监听线程
+
+    listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
+    listener_thread.start()
+    # for win in windows:
+    #     process_window(win)
+    #     # 遍历处理每个窗口
+ # 提交多个任务
+    threads = []
+    for win in windows:
+        t = threading.Thread(target=process_window, args=(win,))
+        t.start()
+        threads.append(t)
+
+    # 等待所有线程结束
+    for t in threads:
+        t.join()
