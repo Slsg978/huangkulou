@@ -49,7 +49,7 @@ time_per_game = 8
 window_titles = ["MuMu模拟器12", "MuMu模拟器13"]
 
 #是否是组队
-is_team = True
+is_team = False
 
 # 控制器字典（一个窗口一个）
 controllers = {title: ThreadController() for title in window_titles}
