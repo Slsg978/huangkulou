@@ -91,12 +91,13 @@ def grab(left, top, right, bottom,img_path,x,y,win):
         # print(f"{img_path}截图大小: 宽={width}, 高={height}")
         template = cv2.imread(img_path, 0)  # 目标图像（按钮、图标等）
         height, width = template.shape  # 高度, 宽度
-        print(f"{img_path}模板尺寸: 宽={width}, 高={height}")
+        # print(f"{img_path}模板尺寸: 宽={width}, 高={height}")
         # 5. 匹配图像特征点
         max_val,max_loc = get_max_val(screenshot,template)
         if max_val >= threshold:
-            # print(f"{img_path}{win.title}图像匹配成功")
-            if img_path == "dist/huodong/tiaozhaun.png" and x_overall.get(win.title) is None and y_overall.get(win.title)is None  :
+            print(f"{img_path}{win.title}图像匹配成功")
+            if img_path == "dist/huodong/tiaozhan.png" and x_overall.get(win.title) is None and y_overall.get(win.title)is None  :
+                print("初始化")
                 match_x, match_y = max_loc
                 x_overall[win.title] = left + match_x + template.shape[1] // 2
                 y_overall[win.title] = top + match_y + template.shape[0] // 2
@@ -121,7 +122,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 if max_val >= threshold:
                     safe_activate_window(win)
                     pyautogui.click()
-            if img_path == "dist/huodong/tiaozhaun.png":
+            if img_path == "dist/huodong/tiaozhan.png":
                 if total.get(win.title) is None:
                     total[win.title] = 0
                 total[win.title]  += 1
@@ -129,7 +130,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 print(f'{win.title}已经打了{total[win.title]}')
             break
         else:
-            print(f"{img_path}图像未匹配 {win.title}")
+            # print(f"{img_path}图像未匹配 {win.title}")
             break
 
 def get_coordinate(file_path):
