@@ -30,7 +30,7 @@ size = 200 # 局数q
 time_per_game = 18 #单位s
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12","MuMu模拟器13"]
+window_titles = ["MuMu模拟器13","MuMu模拟器12"]
 # === 日志输出统一函数 ===
 def log(msg):
     now = datetime.datetime.now().strftime("%H:%M:%S")
@@ -74,7 +74,7 @@ def safe_activate_window(win):
     except Exception as e:
         print(f"⚠️ 激活窗口失败: {e}")
 
-def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
+def grab(left, top, right, bottom,img_path,x,y,win):
     global x_overall, y_overall, total
     while True:
         with flag_lock:
@@ -83,7 +83,7 @@ def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
                 return
             while pause_flag:
                 log("grab() 暂停中...")
-                time.sleep(0.5)
+                time.sleep(1)
         # 4. 截图窗口区域
         screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
         # screenshot.save("dist/1.png")
@@ -91,7 +91,7 @@ def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
         # print(f"{img_path}截图大小: 宽={width}, 高={height}")
         template = cv2.imread(img_path, 0)  # 目标图像（按钮、图标等）
         height, width = template.shape  # 高度, 宽度
-        # print(f"{img_path}模板尺寸: 宽={width}, 高={height}")
+        print(f"{img_path}模板尺寸: 宽={width}, 高={height}")
         # 5. 匹配图像特征点
         max_val,max_loc = get_max_val(screenshot,template)
         if max_val >= threshold:
@@ -109,17 +109,18 @@ def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
                 offset_x = left + match_x + template.shape[1] // 2 + x
                 offset_y = top + match_y + template.shape[0]  // 2 + y
 
-            safe_activate_window(win)  # 激活窗口，使其显示在最前面
-            pyautogui.moveTo(offset_x, offset_y, duration=0)
-            pyautogui.click()
-            time.sleep(0.2)
-            # print(f"🎯 已点击 {win.title} 坐标: ({offset_x}, {offset_y})")
-            # 判断是否跳转成功未成功在点击一次
-            screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
-            max_val, max_loc = get_max_val(screenshot, template)
-            if max_val >= threshold:
-                safe_activate_window(win)
+            mouse_lock = threading.Lock()
+            with mouse_lock:
+                safe_activate_window(win)  # 激活窗口，使其显示在最前面
+                pyautogui.moveTo(offset_x, offset_y, duration=0)
                 pyautogui.click()
+                # print(f"🎯 已点击 {win.title} 坐标: ({offset_x}, {offset_y})")
+                # 判断是否跳转成功未成功在点击一次
+                screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
+                max_val, max_loc = get_max_val(screenshot, template)
+                if max_val >= threshold:
+                    safe_activate_window(win)
+                    pyautogui.click()
             if img_path == "dist/huodong/tiaozhaun.png":
                 if total.get(win.title) is None:
                     total[win.title] = 0
@@ -128,7 +129,7 @@ def grab(left, top, right, bottom,img_path,x,y,hwnd,win):
                 print(f'{win.title}已经打了{total[win.title]}')
             break
         else:
-            # print(f"{img_path}图像未匹配 {win.title}")
+            print(f"{img_path}图像未匹配 {win.title}")
             break
 
 def get_coordinate(file_path):
@@ -136,31 +137,35 @@ def get_coordinate(file_path):
         data = json.load(file)
         return data
 
-def safe_activate(title):
+def safe_activate(titles):
     try:
-        app = Application().connect(title=title)
-        window = app.window(title=title)
-        window.set_focus()
-        win.resizeTo(1280, 720)
-        log(f"✅ 激活窗口成功: {win.title}")
+        app = Application().connect(title=titles)
+        window_spec = app.window(title=titles)
+        window_spec.set_focus()
+        window = window_spec.wrapper_object()  # 获取窗口wrapper对象
+        window.move_window(x=None, y=None, width=1280, height=720, repaint=True)
+        log(f"✅ 激活窗口成功: {window_spec.window_text()}")
         time.sleep(10)
     except Exception as e:
-        log(f"❌ 激活窗口失败: {win.title}，错误：{e}")
+        log(f"❌ 激活窗口失败: {titles}，错误：{e}")
 
-def process_window(win):
-    hwnd = win._hWnd
-    safe_activate(win.title)
-    # print(f"激活窗口 {win.title}")
+def process_window(wins):
+
+    mouse_lock = threading.Lock()
+    with mouse_lock:
+        print(f"激活窗口 {win.title}")
+        safe_activate(wins.title)
+
     time.sleep(1)
-    left, top = win.left, win.top
-    right = left + win.width
-    bottom = top + win.height
+    left, top = wins.left, wins.top
+    right = left + wins.width
+    bottom = top + wins.height
     file_path = "dist/huodong/"
 
     folder = Path(file_path)  # 这是一个 WindowsPath 对象
 
     while True:
-        if total.get(win.title) is not None and total[win.title] >= size:
+        if total.get(wins.title) is not None and total[wins.title] >= size:
             break
         files = folder.iterdir()
         # 获取特点偏移量  为配置默认80
@@ -182,12 +187,12 @@ def process_window(win):
                     if data["name"] == f.name.replace(".png","") :
                         left_coor, right_coor, top_coor,bottom_coor = map(int,data["coordinate"].split(","))
                         grab(left, top, right, bottom, f"{file_path}{f.name}", random.randint(left_coor, right_coor),
-                             random.randint(top_coor, bottom_coor), hwnd, win)
+                             random.randint(top_coor, bottom_coor), wins)
                         temp = True
                         break
                     if not temp:
                         grab(left, top, right, bottom, f"{file_path}{f.name}",
-                             random.randint(-40, 40), random.randint(-40, 40),hwnd,win)
+                             random.randint(-40, 40), random.randint(-40, 40), wins)
 
 if __name__ == '__main__':
     seen_hwnds = set()
@@ -221,6 +226,7 @@ if __name__ == '__main__':
     threads = []
     for win in windows:
         log(f"提交任务{win.title}")
+        time.sleep(3)
         t = threading.Thread(target=process_window, args=(win,))
         t.start()
         threads.append(t)
