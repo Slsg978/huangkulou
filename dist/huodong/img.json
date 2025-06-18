@@ -3,9 +3,9 @@
     "coordinate": "-30,30,-30,30"
   },
   {"name": "shengli_1",
-    "coordinate": "-60,20,-50,30"
+    "coordinate": "-60,100,-50,100"
   },
   {"name": "shengli_2",
-    "coordinate": "-80,20,-20,40"
+    "coordinate": "-80,100,-200,100"
   }
 ]
