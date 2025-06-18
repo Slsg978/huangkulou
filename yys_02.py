@@ -40,7 +40,9 @@ threshold = 0.8
 x_overall = {}
 y_overall = {}
 total = {}
+#挑战多少局
 size = 200
+#点击挑战后休息多久
 time_per_game = 8
 
 # 目标窗口标题列表 + 目标图片路径
@@ -114,9 +116,9 @@ def grab(left, top, right, bottom,img_path,x,y,win):
         template = np.array(imgs)
         height, width = template.shape
         max_val,max_loc = get_max_val(screenshot,template)
-
+        print(img_path)
         if max_val >= threshold:
-            if img_path == "img/huodong/tiaozhan.png" and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
+            if img_path.endswith("tiaozhan.png") and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
                 match_x, match_y = max_loc
                 x_overall[win.title] = left + match_x + width // 2
                 y_overall[win.title] = top + match_y + height // 2
@@ -140,7 +142,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 safe_activate_window(win)
                 pyautogui.click()
 
-            if img_path == "img/huodong/tiaozhan.png":
+            if img_path.endswith("tiaozhan.png"):
                 log(f"挑战开始：休息{time_per_game}s")
                 total[win.title] = total.get(win.title, 0) + 1
                 if is_team:
