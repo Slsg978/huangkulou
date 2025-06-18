@@ -161,7 +161,7 @@ def process_window(wins):
     left, top = wins.left, wins.top
     right = left + wins.width
     bottom = top + wins.height
-    file_path = "dist/huodong/"
+    file_path = "img/huodong/"
 
     folder = Path(file_path)  # 这是一个 WindowsPath 对象
 

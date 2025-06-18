@@ -1,11 +1,14 @@
 import os
 import random
+import logging
+import sys
+import traceback
 
 import numpy as np
 import pygetwindow as gw
 import pyautogui
 import cv2
-from PIL import ImageGrab
+from PIL import ImageGrab, Image
 import time
 import threading
 import keyboard
@@ -38,7 +41,7 @@ x_overall = {}
 y_overall = {}
 total = {}
 size = 200
-time_per_game = 18
+time_per_game = 8
 
 # 目标窗口标题列表 + 目标图片路径
 window_titles = ["MuMu模拟器12", "MuMu模拟器13"]
@@ -49,11 +52,23 @@ is_team = True
 # 控制器字典（一个窗口一个）
 controllers = {title: ThreadController() for title in window_titles}
 
+# 配置日志系统
+log_filename = "clicker.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(threadName)s] %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[
+        logging.FileHandler(log_filename, mode='a', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+
+
 # === 日志输出统一函数 ===
 def log(msg):
-    now = datetime.datetime.now().strftime("%H:%M:%S")
-    thread_name = threading.current_thread().name
-    print(f"[{now}][{thread_name}] {msg}")
+    logging.info(msg)
+
 
 # === 键盘监听线程 ===
 def keyboard_listener():
@@ -94,12 +109,14 @@ def grab(left, top, right, bottom,img_path,x,y,win):
         controllers[win.title].wait_if_paused()
 
         screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
-        template = cv2.imread(img_path, 0)
+
+        imgs = Image.open(img_path).convert('L')
+        template = np.array(imgs)
         height, width = template.shape
         max_val,max_loc = get_max_val(screenshot,template)
 
         if max_val >= threshold:
-            if img_path == "dist/huodong/tiaozhan.png" and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
+            if img_path == "img/huodong/tiaozhan.png" and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
                 match_x, match_y = max_loc
                 x_overall[win.title] = left + match_x + width // 2
                 y_overall[win.title] = top + match_y + height // 2
@@ -123,7 +140,8 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 safe_activate_window(win)
                 pyautogui.click()
 
-            if img_path == "dist/huodong/tiaozhan.png":
+            if img_path == "img/huodong/tiaozhan.png":
+                log(f"挑战开始：休息{time_per_game}s")
                 total[win.title] = total.get(win.title, 0) + 1
                 if is_team:
                     for ctrl in controllers.values():
@@ -133,7 +151,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                         ctrl.resume()
                 else:
                     time.sleep(time_per_game)
-                print(f'{win.title}已经打了{total[win.title]}')
+                log(f'{win.title}已经打了{total[win.title]}')
             break
         else:
             break
@@ -154,14 +172,14 @@ def safe_activate(title):
         log(f"❌ 激活窗口失败: {title}，错误：{e}")
 
 def process_window(wins):
-    print(f"激活窗口 {wins.title}")
+    log(f"激活窗口 {wins.title}")
     safe_activate(wins.title)
 
     time.sleep(1)
     left, top = wins.left, wins.top
     right = left + wins.width
     bottom = top + wins.height
-    file_path = "dist/huodong/"
+    file_path = resource_path("img/huodong")
 
     folder = Path(file_path)
 
@@ -176,45 +194,72 @@ def process_window(wins):
 
         for f in files:
             controllers[wins.title].wait_if_paused()
-
             if f.name.endswith(".png"):
                 time.sleep(0.3)
+                temp = False
                 for data in datas:
                     temp = False
                     if data["name"] == f.name.replace(".png",""):
                         left_coor, right_coor, top_coor, bottom_coor = map(int, data["coordinate"].split(","))
-                        grab(left, top, right, bottom, f"{file_path}{f.name}", random.randint(left_coor, right_coor),
+                        grab(left, top, right, bottom, f"{file_path}\\{f.name}", random.randint(left_coor, right_coor),
                              random.randint(top_coor, bottom_coor), wins)
                         temp = True
                         break
                 if not temp:
-                    grab(left, top, right, bottom, f"{file_path}{f.name}", random.randint(-40, 40), random.randint(-40, 40), wins)
+                        grab(left, top, right, bottom, f"{file_path}\\{f.name}", random.randint(-40, 40), random.randint(-40, 40), wins)
+
+def resource_path(relative_path):
+    """获取兼容 PyInstaller 的资源文件路径"""
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller 解压到的临时路径
+        base_path = Path(sys._MEIPASS)
+    else:
+        # 脚本运行时所在路径
+        base_path = Path(os.getcwd())
+    return base_path / relative_path
+def list_meipass_files():
+    if hasattr(sys, '_MEIPASS'):
+        meipass_dir = sys._MEIPASS
+        log(f"📦 当前 _MEIPASS 路径: {meipass_dir}")
+        for root, dirs, files in os.walk(meipass_dir):
+            for name in files:
+                log(f"📄 文件:{os.path.join(root, name)}")
+            for name in dirs:
+                log(f"📁 文件夹:{os.path.join(root, name)}")
+    else:
+        log("⚠️ 当前不是 PyInstaller 打包运行，_MEIPASS 不存在")
 
 if __name__ == '__main__':
-    seen_hwnds = set()
-    windows = []
-    for title in window_titles:
-        found = gw.getWindowsWithTitle(title)
-        if found:
-            for win in found:
-                if win._hWnd not in seen_hwnds:
-                    seen_hwnds.add(win._hWnd)
-                    windows.append(win)
-                    print(f"✅ 找到窗口: {win.title} - hwnd: {win._hWnd}")
-                else:
-                    print(f"⚠️ 重复窗口忽略: {win.title} - hwnd: {win._hWnd}")
-        else:
-            print(f"❌ 找不到窗口: {title}")
+    try:
+        seen_hwnds = set()
+        windows = []
+        for title in window_titles:
+            found = gw.getWindowsWithTitle(title)
+            if found:
+                for win in found:
+                    if win._hWnd not in seen_hwnds:
+                        seen_hwnds.add(win._hWnd)
+                        windows.append(win)
+                        print(f"✅ 找到窗口: {win.title} - hwnd: {win._hWnd}")
+                    else:
+                        print(f"⚠️ 重复窗口忽略: {win.title} - hwnd: {win._hWnd}")
+            else:
+                print(f"❌ 找不到窗口: {title}")
 
-    listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
-    listener_thread.start()
+        listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
+        listener_thread.start()
+        # list_meipass_files()
+        threads = []
+        for win in windows:
+            log(f"提交任务{win.title}")
+            time.sleep(3)
+            t = threading.Thread(target=process_window, args=(win,))
+            t.start()
+            threads.append(t)
 
-    threads = []
-    for win in windows:
-        log(f"提交任务{win.title}")
-        t = threading.Thread(target=process_window, args=(win,))
-        t.start()
-        threads.append(t)
+        for t in threads:
+            t.join()
+    except Exception as e:
+        log(traceback.print_exc())
+    input("按回车退出...")
 
-    for t in threads:
-        t.join()
