@@ -5,6 +5,6 @@ pip install numpy pygetwindow pyautogui opencv-python pillow keyboard pywinauto 
 
 
 
-
+#打包语句
 
 pyinstaller main.spec
