@@ -12,7 +12,7 @@ from pathlib import Path
 import json
 import datetime
 from pywinauto.application import Application
-
+import win32gui, win32con
 
 # 全局退出标志
 stop_flag = False
@@ -27,7 +27,7 @@ x_overall = {}
 y_overall = {}
 total = {}
 size = 200 # 局数q
-time_per_game = 8 #单位sq
+time_per_game = 18 #单位s
 
 # 目标窗口标题列表 + 目标图片路径
 window_titles = ["MuMu模拟器12","MuMu模拟器13"]
@@ -67,7 +67,6 @@ def get_max_val(screenshot,template):
     return max_val,max_loc
 
 def safe_activate_window(win):
-    import win32gui, win32con
     try:
         hwnd = win._hWnd
         win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)

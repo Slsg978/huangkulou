@@ -1,0 +1,10 @@
+#切换清华库
+pip install  pywin32 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip install numpy pygetwindow pyautogui opencv-python pillow keyboard pywinauto pywin32 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+
+pip install PySide6 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
