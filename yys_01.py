@@ -144,7 +144,7 @@ def safe_activate(title):
         window.set_focus()
         win.resizeTo(1280, 720)
         log(f"✅ 激活窗口成功: {win.title}")
-        time.sleep(1)
+        time.sleep(10)
     except Exception as e:
         log(f"❌ 激活窗口失败: {win.title}，错误：{e}")
 
