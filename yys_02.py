@@ -41,13 +41,13 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 200
+size = 94
 #点击挑战后休息多久
-time_per_game = 8
+time_per_game = 9
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12", "MuMu模拟器13"]
-
+window_titles = ["MuMu模拟器12"]
+img_paths = "img/yuhun/"
 #是否是组队
 is_team = False
 
@@ -134,13 +134,15 @@ def grab(left, top, right, bottom,img_path,x,y,win):
             safe_activate_window(win)
             pyautogui.moveTo(offset_x, offset_y, duration=0)
             pyautogui.click()
-            time.sleep(0.2)
+            time.sleep(1)
 
             screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
             max_val, max_loc = get_max_val(screenshot, template)
-            if max_val >= threshold:
+            while max_val >= threshold:
                 safe_activate_window(win)
                 pyautogui.click()
+                time.sleep(random.random())
+                max_val, max_loc = get_max_val(screenshot, template)
 
             if img_path.endswith("tiaozhan.png"):
                 log(f"挑战开始：休息{time_per_game}s")
@@ -183,7 +185,7 @@ def process_window(wins):
     left, top = wins.left, wins.top
     right = left + wins.width
     bottom = top + wins.height
-    file_path = resource_path("img/huodong")
+    file_path = resource_path(img_paths)
 
     folder = Path(file_path)
 
