@@ -168,6 +168,8 @@ def safe_activate(title):
         app = Application().connect(title=title)
         window = app.window(title=title)
         window.set_focus()
+        window.move_window(x=None, y=None, width=1280, height=720, repaint=True)
+
         log(f"✅ 激活窗口成功: {title}")
         time.sleep(10)
     except Exception as e:
