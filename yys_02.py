@@ -43,7 +43,7 @@ total = {}
 #挑战多少局
 size = 94
 #点击挑战后休息多久
-time_per_game = 9
+time_per_game = 23
 
 # 目标窗口标题列表 + 目标图片路径
 window_titles = ["MuMu模拟器12"]
@@ -138,11 +138,11 @@ def grab(left, top, right, bottom,img_path,x,y,win):
 
             screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
             max_val, max_loc = get_max_val(screenshot, template)
-            while max_val >= threshold:
+            if max_val >= threshold:
                 safe_activate_window(win)
                 pyautogui.click()
                 time.sleep(random.random())
-                max_val, max_loc = get_max_val(screenshot, template)
+                # max_val, max_loc = get_max_val(screenshot, template)
 
             if img_path.endswith("tiaozhan.png"):
                 log(f"挑战开始：休息{time_per_game}s")
