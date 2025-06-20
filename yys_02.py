@@ -116,7 +116,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
         template = np.array(imgs)
         height, width = template.shape
         max_val,max_loc = get_max_val(screenshot,template)
-        print(img_path)
+        # print(img_path)
         if max_val >= threshold:
             if img_path.endswith("tiaozhan.png") and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
                 match_x, match_y = max_loc
@@ -134,7 +134,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
             safe_activate_window(win)
             pyautogui.moveTo(offset_x, offset_y, duration=0)
             pyautogui.click()
-            time.sleep(1)
+            time.sleep(random.random())
 
             screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
             max_val, max_loc = get_max_val(screenshot, template)
@@ -193,7 +193,10 @@ def process_window(wins):
         controllers[wins.title].wait_if_paused()
 
         if total.get(wins.title) is not None and total[wins.title] >= size:
-            break
+            if is_team:
+                os._exit(0)
+            else:
+                break
 
         files = folder.iterdir()
         datas = get_coordinate(file_path)
