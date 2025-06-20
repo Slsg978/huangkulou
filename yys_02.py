@@ -46,8 +46,8 @@ size = 94
 time_per_game = 23
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12"]
-img_paths = "img/yuhun/"
+window_titles = ["阴阳师1号","阴阳师2号"]
+img_paths = "img/huodong/"
 #是否是组队
 is_team = False
 
