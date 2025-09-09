@@ -14,7 +14,6 @@ import threading
 import keyboard
 from pathlib import Path
 import json
-import datetime
 from pywinauto.application import Application
 import win32gui, win32con
 
@@ -41,15 +40,16 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 94
+size = 68
 #点击挑战后休息多久
-time_per_game = 23
+time_per_game = 45
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["阴阳师1号","阴阳师2号"]
-img_paths = "img/huodong/"
+window_titles = ["MuMu模拟器13"]
+img_paths = "img/yuanyehuo/"
 #是否是组队
 is_team = False
+# is_team = True
 
 # 控制器字典（一个窗口一个）
 controllers = {title: ThreadController() for title in window_titles}
@@ -133,15 +133,34 @@ def grab(left, top, right, bottom,img_path,x,y,win):
 
             safe_activate_window(win)
             pyautogui.moveTo(offset_x, offset_y, duration=0)
-            pyautogui.click()
-            time.sleep(random.random())
+            lock = threading.Lock()
+            with lock:
+                pyautogui.moveTo(offset_x, offset_y, duration=0)
+                pyautogui.click()
+                if img_path.endswith("tiaozhan.png"):
+                    time.sleep(1)
+            time.sleep(0.2)
 
             screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
             max_val, max_loc = get_max_val(screenshot, template)
             if max_val >= threshold:
                 safe_activate_window(win)
-                pyautogui.click()
-                time.sleep(random.random())
+                lock = threading.Lock()
+                with lock:
+                    pyautogui.moveTo(offset_x, offset_y, duration=0)
+                    pyautogui.click()
+            time.sleep(0.2)
+
+            screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
+            max_val, max_loc = get_max_val(screenshot, template)
+            if max_val >= threshold:
+                safe_activate_window(win)
+                lock = threading.Lock()
+                with lock:
+                    pyautogui.moveTo(offset_x, offset_y, duration=0)
+                    pyautogui.click()
+
+
                 # max_val, max_loc = get_max_val(screenshot, template)
 
             if img_path.endswith("tiaozhan.png"):
@@ -156,6 +175,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 else:
                     time.sleep(time_per_game)
                 log(f'{win.title}已经打了{total[win.title]}')
+            time.sleep(0.5)
             break
         else:
             break

@@ -57,13 +57,8 @@ def start_admin_instance():
     time.sleep(10)
 
 def main():
-    if len(sys.argv) < 2:
-        print("用法: launcher_with_task.py <窗口总数>")
-        input("按回车退出...")
-        return
-
     try:
-        total = int(sys.argv[1])
+        total = int(input("请输入要打开的窗口个数（最多4个）："))
         if total < 1:
             raise ValueError
     except ValueError:

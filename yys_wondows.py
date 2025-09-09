@@ -67,7 +67,7 @@ def main():
     for i, hwnd in enumerate(matched_windows[:count]):
         new_title = new_title_template.format(i + 1)
         win32gui.SetWindowText(hwnd, new_title)
-
+        time.sleep(2)
         x, y = positions[i]
         move_window(hwnd, x, y, win_w, win_h)
         print(f"🎯 第 {i+1} 个窗口重命名并移动到 ({x}, {y})")

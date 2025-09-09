@@ -12,6 +12,10 @@ a = Analysis(
     datas=[
         ('img/huodong/*.png', 'img/huodong'),
         ('img/huodong/img.json', 'img/huodong'),
+        ('img/yuhun/*.png', 'img/yuhun'),
+        ('img/yuhun/img.json', 'img/yuhun'),
+        ('img/yuling/*.png', 'img/yuling'),
+        ('img/yuling/img.json', 'img/yuling'),
     ],
     hiddenimports=[
         'pygetwindow',
