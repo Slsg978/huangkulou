@@ -40,13 +40,13 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 68
+size = 600
 #点击挑战后休息多久
-time_per_game = 45
+time_per_game = 7
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器13"]
-img_paths = "img/yuanyehuo/"
+window_titles = ["MuMu模拟器12","MuMu模拟器14"]
+img_paths = "img/huodong/"
 #是否是组队
 is_team = False
 # is_team = True
