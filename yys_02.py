@@ -42,9 +42,10 @@ total = {}
 #挑战多少局
 size = 600
 #点击挑战后休息多久
-time_per_game = 7
+time_per_game = 12
 
 # 目标窗口标题列表 + 目标图片路径
+# window_titles = ["mumu12模拟器-1","mumu12模拟器-2"]
 window_titles = ["MuMu模拟器12","MuMu模拟器14"]
 img_paths = "img/huodong/"
 #是否是组队
@@ -123,7 +124,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 x_overall[win.title] = left + match_x + width // 2
                 y_overall[win.title] = top + match_y + height // 2
 
-            if x_overall.get(win.title) is not None and y_overall.get(win.title) is not None:
+            if x_overall.get(win.title) is not None and y_overall.get(win.title) is not None and img_path.endswith("jieshou.png"):
                 offset_x = x_overall[win.title] + x
                 offset_y = y_overall[win.title] + y
             else:
