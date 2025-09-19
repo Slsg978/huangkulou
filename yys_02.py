@@ -40,13 +40,12 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 600
+size = 994
 #点击挑战后休息多久
-time_per_game = 12
+time_per_game = 13
 
 # 目标窗口标题列表 + 目标图片路径
-# window_titles = ["mumu12模拟器-1","mumu12模拟器-2"]
-window_titles = ["MuMu模拟器12","MuMu模拟器14"]
+window_titles = ["MuMu模拟器12","MuMu模拟器13","MuMu模拟器14"]
 img_paths = "img/huodong/"
 #是否是组队
 is_team = False
@@ -119,7 +118,7 @@ def grab(left, top, right, bottom,img_path,x,y,win):
         max_val,max_loc = get_max_val(screenshot,template)
         # print(img_path)
         if max_val >= threshold:
-            if img_path.endswith("tiaozhan.png") and x_overall.get(win.title) is None and y_overall.get(win.title) is None:
+            if img_path.endswith("tiaozhan.png") and x_overall.get(win.title) is None and y_overall.get(win.title) is None :
                 match_x, match_y = max_loc
                 x_overall[win.title] = left + match_x + width // 2
                 y_overall[win.title] = top + match_y + height // 2
