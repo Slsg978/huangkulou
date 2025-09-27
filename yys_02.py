@@ -40,18 +40,18 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 900
+size = 90
 #点击挑战后休息多久
-time_per_game = 7
+time_per_game = 28
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12","MuMu模拟器14"]
+window_titles = ["MuMu模拟器12","MuMu模拟器13","MuMu模拟器14"]
 #队员配置 队长无需配置
-is_team_pass={"MuMu模拟器12" : False,"MuMu模拟器14" : False}
-img_paths = "img/huodong/"
+is_team_pass={"MuMu模拟器12" : True,"MuMu模拟器14" : True}
+img_paths = "img/yuhun/"
 #是否是组队
-is_team = False
-# is_team = True
+# is_team = False
+is_team = True
 
 # 控制器字典（一个窗口一个）
 controllers = {title: ThreadController() for title in window_titles}
