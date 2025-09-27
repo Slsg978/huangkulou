@@ -40,12 +40,14 @@ x_overall = {}
 y_overall = {}
 total = {}
 #挑战多少局
-size = 994
+size = 900
 #点击挑战后休息多久
-time_per_game = 13
+time_per_game = 7
 
 # 目标窗口标题列表 + 目标图片路径
-window_titles = ["MuMu模拟器12","MuMu模拟器13","MuMu模拟器14"]
+window_titles = ["MuMu模拟器12","MuMu模拟器14"]
+#队员配置 队长无需配置
+is_team_pass={"MuMu模拟器12" : False,"MuMu模拟器14" : False}
 img_paths = "img/huodong/"
 #是否是组队
 is_team = False
@@ -130,6 +132,11 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 match_x, match_y = max_loc
                 offset_x = left + match_x + width // 2 + x
                 offset_y = top + match_y + height // 2 + y
+            while img_path.endswith("tiaozhan.png") :
+                if all(is_team_pass.values()):
+                    for k in is_team_pass:
+                        is_team_pass[k] = False
+                    break
 
             safe_activate_window(win)
             pyautogui.moveTo(offset_x, offset_y, duration=0)
@@ -159,12 +166,13 @@ def grab(left, top, right, bottom,img_path,x,y,win):
                 with lock:
                     pyautogui.moveTo(offset_x, offset_y, duration=0)
                     pyautogui.click()
-
-
                 # max_val, max_loc = get_max_val(screenshot, template)
-
+            #判断是否跳转组队页面
+            if img_path.endswith("shengli_2.png"):
+                is_team_pass[win.title]=True
             if img_path.endswith("tiaozhan.png"):
                 log(f"挑战开始：休息{time_per_game}s")
+                #判断是否组队
                 total[win.title] = total.get(win.title, 0) + 1
                 if is_team:
                     for ctrl in controllers.values():
@@ -290,5 +298,8 @@ if __name__ == '__main__':
             t.join()
     except Exception as e:
         log(traceback.print_exc())
+
+    os.system("shutdown /s /t 1")  # Windows系统
+
     input("按回车退出...")
 
