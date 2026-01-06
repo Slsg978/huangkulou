@@ -97,8 +97,8 @@ def save_sectors(rows: List[dict]):
             r.get("f136",None), #leader_stock_change_percent
             r.get("f104",None), # `up_numbe`
             r.get("f105",None), #, `down_numbe`
-            # pendulum.now().format('YYYY-MM-DD')
-            '2026-01-05'
+            pendulum.now().format('YYYY-MM-DD')
+            # '2026-01-05'
 
         )
         for r in rows
@@ -169,8 +169,8 @@ def parse_stock_his(rows,board_code,board_name):
             clean_numeric(row.get("f84",None)),     # volume_ratio
             clean_numeric(row.get("f87",None)),
             # turnover_rate
-            '2026-01-05'
-            # pendulum.now().format('YYYY-MM-DD')
+            # '2026-01-05'
+            pendulum.now().format('YYYY-MM-DD')
 
         )
         for row in rows
@@ -224,8 +224,8 @@ def parse_stock(rows,board_code,board_name):
             clean_numeric(row.get("f181",None)),
             clean_numeric(row.get("f182",None)),
             clean_numeric(row.get("f183",None)),
-            # pendulum.now().format('YYYY-MM-DD')
-            '2026-01-05'
+            pendulum.now().format('YYYY-MM-DD')
+            # '2026-01-05'
 
         )
         for row in rows
